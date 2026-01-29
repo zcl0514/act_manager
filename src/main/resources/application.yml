@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: act_manager
+
+# MyBatis 配置
+mybatis:
+  # mapper.xml 文件位置
+  mapper-locations: classpath:mapper/*.xml
+  # 实体类包路径
+  type-aliases-package: com.chenchen.act_manager.entity
+  configuration:
+    # 开启驼峰命名转换
+    map-underscore-to-camel-case: true
+    # 日志实现
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# SQLite 数据库配置
+sqlite:
+  # 数据库文件路径（相对路径）
+  db-path: classpath:/data/myapp.db
+  # 初始化SQL文件（可选）
+  init-sql: classpath:/data/init.sql
+
+# 日志配置
+logging:
+  level:
+    com.example.sqlitedemo: debug
+    org.springframework.web: info

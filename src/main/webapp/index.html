@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>宸宸家庭行为管理系统</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+<div class="container">
+    <!-- 头部 -->
+    <header class="header">
+        <h1><i class="fas fa-home"></i> 宸宸家庭行为管理系统</h1>
+        <div class="user-info">
+            <span id="currentUser">管理员</span>
+            <button class="btn btn-secondary" onclick="exportToWord()">
+                <i class="fas fa-file-word"></i> 导出Word
+            </button>
+        </div>
+    </header>
+
+    <!-- 统计卡片 -->
+    <div class="stats-cards">
+        <div class="stat-card">
+            <div class="stat-icon" style="background-color: #4CAF50;">
+                <i class="fas fa-star"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="totalRewards">0</h3>
+                <p>奖励项目</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background-color: #F44336;">
+                <i class="fas fa-minus-circle"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="totalDeductions">0</h3>
+                <p>扣除项目</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background-color: #2196F3;">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="totalOwners">0</h3>
+                <p>参与人员</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background-color: #FF9800;">
+                <i class="fas fa-flower"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="totalFlowers">0</h3>
+                <p>总红花数</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 操作区域 -->
+    <div class="action-bar">
+        <div class="action-group">
+            <button class="btn btn-primary" onclick="openAddModal()">
+                <i class="fas fa-plus"></i> 添加新规则
+            </button>
+
+            <div class="dropdown">
+                <button class="btn btn-success dropdown-toggle" id="exportDropdown" data-toggle="dropdown">
+                    <i class="fas fa-file-export"></i> 导出选项
+                </button>
+                <div class="dropdown-menu" aria-labelledby="exportDropdown">
+                    <button class="dropdown-item" onclick="exportAllToWord()">
+                        <i class="fas fa-file-word"></i> 导出全部数据
+                    </button>
+                    <div class="dropdown-divider"></div>
+                    <h6 class="dropdown-header">按类型导出</h6>
+                    <button class="dropdown-item" onclick="exportByType(0)">
+                        <i class="fas fa-star" style="color: #4CAF50;"></i> 奖励项目
+                    </button>
+                    <button class="dropdown-item" onclick="exportByType(1)">
+                        <i class="fas fa-minus-circle" style="color: #F44336;"></i> 扣除项目
+                    </button>
+                    <button class="dropdown-item" onclick="exportByType(2)">
+                        <i class="fas fa-trophy" style="color: #2196F3;"></i> 重大奖励
+                    </button>
+                    <button class="dropdown-item" onclick="exportByType(3)">
+                        <i class="fas fa-exclamation-triangle" style="color: #FF9800;"></i> 重大扣除
+                    </button>
+                    <div class="dropdown-divider"></div>
+                    <button class="dropdown-item" onclick="exportFilteredData()">
+                        <i class="fas fa-filter"></i> 导出当前筛选结果
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="search-filter">
+            <div class="search-input-group">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchInput" placeholder="搜索行为内容或备注...">
+                <button class="btn btn-clear" onclick="resetSearch()" title="清除搜索">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="filter-group">
+                <select id="typeFilter" class="form-select">
+                    <option value="">所有类型</option>
+                    <option value="0">奖励</option>
+                    <option value="1">扣除</option>
+                    <option value="2">重大奖励</option>
+                    <option value="3">重大扣除</option>
+                </select>
+
+                <select id="ownerFilter" class="form-select">
+                    <option value="">所有人员</option>
+                    <option value="0">宸宸</option>
+                    <option value="1">爸爸妈妈</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- 搜索结果提示 -->
+    <div class="search-results-info" id="searchResultsInfo" style="display: none;">
+        <div class="results-stats">
+            <i class="fas fa-filter"></i>
+            <span>当前筛选结果: <strong id="resultsCount">0</strong> 条记录</span>
+            <button class="btn btn-sm btn-link" onclick="resetSearch()">
+                <i class="fas fa-times"></i> 清除筛选
+            </button>
+        </div>
+    </div>
+
+    <!-- 数据表格 -->
+    <div class="table-container">
+        <table id="behaviorTable">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>行为内容</th>
+                <th>红花数量</th>
+                <th>类型</th>
+                <th>执行人</th>
+                <th>备注</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody id="tableBody">
+            <!-- 数据将通过JavaScript动态加载 -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 分页 -->
+    <div class="pagination">
+        <button id="prevPage" onclick="changePage(-1)" disabled>上一页</button>
+        <span id="pageInfo">第 1 页 / 共 1 页</span>
+        <button id="nextPage" onclick="changePage(1)" disabled>下一页</button>
+    </div>
+</div>
+
+<!-- 添加/编辑模态框 -->
+<div id="behaviorModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalTitle">添加新规则</h2>
+            <span class="close" onclick="closeModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="behaviorForm">
+                <input type="hidden" id="itemId">
+
+                <div class="form-group">
+                    <label for="role">行为内容 *</label>
+                    <textarea id="role" rows="3" placeholder="请输入行为描述..." required></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="redFlowerCount">红花数量 *</label>
+                        <input type="number" id="redFlowerCount" min="1" max="10" value="1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="type">类型 *</label>
+                        <select id="type" required>
+                            <option value="0">奖励</option>
+                            <option value="1">扣除</option>
+                            <option value="2">重大奖励</option>
+                            <option value="3">重大扣除</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="owner">执行人 *</label>
+                        <select id="owner" required>
+                            <option value="0">宸宸</option>
+                            <option value="1">爸爸妈妈</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="extra">备注</label>
+                    <input type="text" id="extra" placeholder="可选，如：特殊奖励/扣除">
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 确认删除模态框 -->
+<div id="confirmModal" class="modal">
+    <div class="modal-content confirm-modal">
+        <div class="modal-body">
+            <i class="fas fa-exclamation-triangle warning-icon"></i>
+            <h3>确认删除</h3>
+            <p id="confirmMessage">您确定要删除这条规则吗？此操作不可撤销。</p>
+            <div class="confirm-actions">
+                <button class="btn btn-secondary" onclick="closeConfirmModal()">取消</button>
+                <button class="btn btn-danger" onclick="confirmDelete()">删除</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="api.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

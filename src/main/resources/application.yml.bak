@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    url: jdbc:sqlite:./data/myapp.db # 相对路径，数据库文件位于项目根目录的 data 文件夹下
+    driver-class-name: org.sqlite.JDBC
+    username: # SQLite通常不需要
+    password: # SQLite通常不需要
+# MyBatis 配置
+mybatis:
+  # 指定别名扫描的包，这样在Mapper XML中可以直接使用类名而非全限定名
+  type-aliases-package: com.example.demo.entity
+  # 可选：指定Mapper XML文件的位置，如果使用XML方式
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true # 自动将下划线列名映射为驼峰属性名
