@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chenchen.act_manager.mapper.WordInfoMapper">
+
+    <select id="search" parameterType="com.chenchen.act_manager.entity.QueryReq"
+            resultType="com.chenchen.act_manager.entity.WordInfo">
+
+        select * from word_info
+        <where>
+            status=1
+            <if test="type != null">
+                and type=#{type}
+            </if>
+            <if test="owner != null">
+                and owner=#{owner}
+            </if>
+            <if test="keyword != null">
+                and role=#{keyword}
+            </if>
+        </where>
+
+    </select>
+</mapper>

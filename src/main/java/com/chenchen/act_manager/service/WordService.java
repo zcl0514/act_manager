@@ -1,6 +1,7 @@
 package com.chenchen.act_manager.service;
 
 import com.chenchen.act_manager.dtos.WordInfoDto;
+import com.chenchen.act_manager.entity.QueryReq;
 import com.chenchen.act_manager.entity.WordInfo;
 import com.chenchen.act_manager.enums.ActManagerType;
 import com.chenchen.act_manager.enums.OwnerType;
@@ -49,7 +50,11 @@ public class WordService {
     @Autowired
     private WordInfoMapper wordInfoMapper;
 
-    public List<WordInfo> getWordInfos() {
+    public List<WordInfo> getWordInfos(QueryReq req) {
+        return wordInfoMapper.search(req);
+    }
+
+    public List<WordInfo> getAllWordInfos() {
         return wordInfoMapper.selectAll();
     }
 
@@ -335,7 +340,7 @@ public class WordService {
             System.out.println("Word文档已生成：行为规范表.docx");
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("word生成失败!", e);
         }
     }
 

@@ -11,11 +11,8 @@ public class QueryReq {
 
     private Integer type;
 
-    private Integer page = 0;
+    private Integer owner;
 
-    private Integer size = 10;
+    private String keyword;
 
-    private String sortBy = "id";
-
-    private String direction = "desc";
 }

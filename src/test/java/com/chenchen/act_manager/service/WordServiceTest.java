@@ -1,11 +1,9 @@
 package com.chenchen.act_manager.service;
 
+import com.chenchen.act_manager.entity.QueryReq;
 import org.junit.jupiter.api.Test;
-import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author zouchanglin
@@ -15,11 +13,19 @@ import static org.junit.jupiter.api.Assertions.*;
 //@MapperScan("com.chenchen.act_manager.service")
 class WordServiceTest {
 
+
     @Autowired
     private WordService wordService;
 
     @Test
     void generate() {
-        wordService.generate(wordService.getWordInfos());
+        wordService.generate(wordService.getWordInfos(new QueryReq()));
+    }
+
+    @Test
+    public void search(){
+        QueryReq queryReq = new QueryReq();
+        queryReq.setType(3);
+        System.out.println(wordService.getWordInfos(queryReq));
     }
 }

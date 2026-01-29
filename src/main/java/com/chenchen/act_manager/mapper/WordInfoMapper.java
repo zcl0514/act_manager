@@ -1,5 +1,6 @@
 package com.chenchen.act_manager.mapper;
 
+import com.chenchen.act_manager.entity.QueryReq;
 import com.chenchen.act_manager.entity.WordInfo;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
@@ -36,4 +37,6 @@ public interface WordInfoMapper {
             "set role=#{wordInfo.role},red_flower_count=#{wordInfo.redFlowerCount},type=#{wordInfo.type},extra=#{wordInfo.extra},owner=#{wordInfo.owner} " +
             "where id=#{id}")
     void updateById(@Param("id") Integer id,@Param("wordInfo") WordInfo wordInfo);
+
+    List<WordInfo> search(QueryReq req);
 }

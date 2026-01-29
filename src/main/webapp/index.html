@@ -15,7 +15,7 @@
         <h1><i class="fas fa-home"></i> 宸宸家庭行为管理系统</h1>
         <div class="user-info">
             <span id="currentUser">管理员</span>
-            <button class="btn btn-secondary" onclick="exportToWord()">
+            <button class="btn btn-success" onclick="exportToWord()">
                 <i class="fas fa-file-word"></i> 导出Word
             </button>
         </div>
@@ -67,59 +67,30 @@
             <button class="btn btn-primary" onclick="openAddModal()">
                 <i class="fas fa-plus"></i> 添加新规则
             </button>
-
-            <div class="dropdown">
-                <button class="btn btn-success dropdown-toggle" id="exportDropdown" data-toggle="dropdown">
-                    <i class="fas fa-file-export"></i> 导出选项
-                </button>
-                <div class="dropdown-menu" aria-labelledby="exportDropdown">
-                    <button class="dropdown-item" onclick="exportAllToWord()">
-                        <i class="fas fa-file-word"></i> 导出全部数据
-                    </button>
-                    <div class="dropdown-divider"></div>
-                    <h6 class="dropdown-header">按类型导出</h6>
-                    <button class="dropdown-item" onclick="exportByType(0)">
-                        <i class="fas fa-star" style="color: #4CAF50;"></i> 奖励项目
-                    </button>
-                    <button class="dropdown-item" onclick="exportByType(1)">
-                        <i class="fas fa-minus-circle" style="color: #F44336;"></i> 扣除项目
-                    </button>
-                    <button class="dropdown-item" onclick="exportByType(2)">
-                        <i class="fas fa-trophy" style="color: #2196F3;"></i> 重大奖励
-                    </button>
-                    <button class="dropdown-item" onclick="exportByType(3)">
-                        <i class="fas fa-exclamation-triangle" style="color: #FF9800;"></i> 重大扣除
-                    </button>
-                    <div class="dropdown-divider"></div>
-                    <button class="dropdown-item" onclick="exportFilteredData()">
-                        <i class="fas fa-filter"></i> 导出当前筛选结果
-                    </button>
-                </div>
-            </div>
         </div>
 
         <div class="search-filter">
             <div class="search-input-group">
                 <i class="fas fa-search search-icon"></i>
-                <input type="text" id="searchInput" placeholder="搜索行为内容或备注...">
-                <button class="btn btn-clear" onclick="resetSearch()" title="清除搜索">
+                <input type="text" id="searchInput" placeholder="搜索行为内容...">
+                <button class="btn-clear" onclick="clearSearch()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
             <div class="filter-group">
-                <select id="typeFilter" class="form-select">
+                <select id="typeFilter">
                     <option value="">所有类型</option>
-                    <option value="0">奖励</option>
-                    <option value="1">扣除</option>
-                    <option value="2">重大奖励</option>
-                    <option value="3">重大扣除</option>
+                    <option value="1">奖励</option>
+                    <option value="2">扣除</option>
+                    <option value="3">重大奖励</option>
+                    <option value="4">重大扣除</option>
                 </select>
 
-                <select id="ownerFilter" class="form-select">
+                <select id="ownerFilter">
                     <option value="">所有人员</option>
-                    <option value="0">宸宸</option>
-                    <option value="1">爸爸妈妈</option>
+                    <option value="1">宸宸</option>
+                    <option value="2">爸爸妈妈</option>
                 </select>
             </div>
         </div>
@@ -130,7 +101,7 @@
         <div class="results-stats">
             <i class="fas fa-filter"></i>
             <span>当前筛选结果: <strong id="resultsCount">0</strong> 条记录</span>
-            <button class="btn btn-sm btn-link" onclick="resetSearch()">
+            <button class="btn-link" onclick="clearAllFilters()">
                 <i class="fas fa-times"></i> 清除筛选
             </button>
         </div>
@@ -189,18 +160,18 @@
                     <div class="form-group">
                         <label for="type">类型 *</label>
                         <select id="type" required>
-                            <option value="0">奖励</option>
-                            <option value="1">扣除</option>
-                            <option value="2">重大奖励</option>
-                            <option value="3">重大扣除</option>
+                            <option value="1">奖励</option>
+                            <option value="2">扣除</option>
+                            <option value="3">重大奖励</option>
+                            <option value="4">重大扣除</option>
                         </select>
                     </div>
 
                     <div class="form-group">
                         <label for="owner">执行人 *</label>
                         <select id="owner" required>
-                            <option value="0">宸宸</option>
-                            <option value="1">爸爸妈妈</option>
+                            <option value="1">宸宸</option>
+                            <option value="2">爸爸妈妈</option>
                         </select>
                     </div>
                 </div>

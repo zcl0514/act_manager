@@ -3,23 +3,17 @@ const API_BASE_URL = 'http://localhost:8080/api'; // 根据实际情况修改
 
 // API接口地址
 const API_ENDPOINTS = {
-    GET_ALL: '/behaviors',
-    GET_BY_ID: '/behaviors',
-    CREATE: '/behaviors',
-    UPDATE: '/behaviors',
-    DELETE: '/behaviors',
-    EXPORT: '/behaviors/export',
-    EXPORT_TYPE: '/behaviors/export/type',
-    SEARCH: '/behaviors/search', // 条件搜索接口
-    SEARCH_STATS: '/behaviors/search/stats' // 搜索统计接口
+    BEHAVIORS: '/behaviors', // 统一使用这个接口
+    EXPORT_WORD: '/behaviors/export'
 };
 
 // 类型映射
-const TYPE_MAP = {
-    1: { name: '奖励', className: 'badge-reward' },
-    2: { name: '扣除', className: 'badge-deduction' },
-    3: { name: '重大奖励', className: 'badge-major-reward' },
-    4: { name: '重大扣除', className: 'badge-major-deduction' }
+let TYPE_MAP;
+TYPE_MAP = {
+    1: {name: '奖励', className: 'badge-reward'},
+    2: {name: '扣除', className: 'badge-deduction'},
+    3: {name: '重大奖励', className: 'badge-major-reward'},
+    4: {name: '重大扣除', className: 'badge-major-deduction'}
 };
 
 // 执行人映射
@@ -28,77 +22,59 @@ const OWNER_MAP = {
     2: '爸爸妈妈'
 };
 
-// 获取所有行为规则
-async function fetchAllBehaviors() {
+/**
+ * 获取行为规则
+ * @param {Object} params - 查询参数 {keyword, type, owner}
+ */
+async function fetchBehaviors(params = {}) {
     try {
-        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.GET_ALL}`);
+        // 构建查询参数
+        const queryParams = new URLSearchParams();
+
+        // 添加查询条件
+        if (params.keyword) queryParams.append('keyword', params.keyword);
+        if (params.type !== '' && params.type !== null && params.type !== undefined)
+            queryParams.append('type', params.type);
+        if (params.owner !== '' && params.owner !== null && params.owner !== undefined)
+            queryParams.append('owner', params.owner);
+
+        // 设置大size让后端返回所有数据，前端进行分页
+        queryParams.append('size', '10000');
+
+        const url = `${API_BASE_URL}${API_ENDPOINTS.BEHAVIORS}?${queryParams.toString()}`;
+
+        const response = await fetch(url);
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
+
         const data = await response.json();
-        return Array.isArray(data) ? data : [];
+
+        // 处理返回数据格式
+        // 如果后端返回的是分页格式，提取content
+        if (data && data.content) {
+            return data.content || [];
+        }
+        // 如果后端返回的是数组格式，直接返回
+        else if (Array.isArray(data)) {
+            return data;
+        }
+        // 其他格式，返回空数组
+        else {
+            return [];
+        }
     } catch (error) {
         console.error('获取数据失败:', error);
-        showError('获取数据失败，请检查网络连接或API地址');
+        showError('获取数据失败，请检查网络连接');
         return [];
-    }
-}
-
-// 条件搜索行为规则
-async function searchBehaviors(params) {
-    try {
-        const queryParams = new URLSearchParams();
-
-        // 添加查询参数
-        if (params.keyword) queryParams.append('keyword', params.keyword);
-        if (params.type !== null && params.type !== undefined) queryParams.append('type', params.type);
-        if (params.owner !== null && params.owner !== undefined) queryParams.append('owner', params.owner);
-
-        queryParams.append('page', params.page || 0);
-        queryParams.append('size', params.size || 10);
-        queryParams.append('sortBy', params.sortBy || 'id');
-        queryParams.append('direction', params.direction || 'desc');
-
-        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.SEARCH}?${queryParams.toString()}`);
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error('条件搜索失败:', error);
-        showError('搜索失败');
-        throw error;
-    }
-}
-
-// 获取搜索统计信息
-async function getSearchStats(params) {
-    try {
-        const queryParams = new URLSearchParams();
-
-        if (params.keyword) queryParams.append('keyword', params.keyword);
-        if (params.type !== null && params.type !== undefined) queryParams.append('type', params.type);
-        if (params.owner !== null && params.owner !== undefined) queryParams.append('owner', params.owner);
-
-        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.SEARCH_STATS}?${queryParams.toString()}`);
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error('获取搜索统计失败:', error);
-        return null;
     }
 }
 
 // 根据ID获取单条记录
 async function fetchBehaviorById(id) {
     try {
-        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.GET_BY_ID}/${id}`);
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.BEHAVIORS}/${id}`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -113,7 +89,7 @@ async function fetchBehaviorById(id) {
 // 创建新记录
 async function createBehavior(behaviorData) {
     try {
-        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.CREATE}`, {
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.BEHAVIORS}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -136,7 +112,7 @@ async function createBehavior(behaviorData) {
 // 更新记录
 async function updateBehavior(id, behaviorData) {
     try {
-        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.UPDATE}/${id}`, {
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.BEHAVIORS}/${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -159,7 +135,7 @@ async function updateBehavior(id, behaviorData) {
 // 删除记录
 async function deleteBehavior(id) {
     try {
-        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.DELETE}/${id}`, {
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.BEHAVIORS}/${id}`, {
             method: 'DELETE'
         });
 
@@ -222,19 +198,4 @@ function showError(message) {
         text: message,
         timer: 3000
     });
-}
-
-// 工具函数：显示确认对话框
-async function showConfirm(title, text) {
-    const result = await Swal.fire({
-        title: title,
-        text: text,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        reverseButtons: true
-    });
-
-    return result.isConfirmed;
 }

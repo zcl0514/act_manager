@@ -1,10 +1,11 @@
 // 全局变量
-let allBehaviors = [];
-let filteredBehaviors = [];
+let behaviors = []; // 从后端获取的所有数据
+let filteredBehaviors = []; // 当前显示的数据
 let currentPage = 1;
 const itemsPerPage = 10;
 let itemToDelete = null;
 let currentSearchParams = {};
+let searchTimeout = null;
 
 // 页面加载时初始化
 document.addEventListener('DOMContentLoaded', async function() {
@@ -15,20 +16,16 @@ document.addEventListener('DOMContentLoaded', async function() {
 // 加载所有行为规则
 async function loadBehaviors() {
     try {
-        // 显示加载状态
         showLoading();
 
-        allBehaviors = await fetchAllBehaviors();
-        filteredBehaviors = [...allBehaviors];
+        // 调用接口获取所有数据（不传递查询条件）
+        behaviors = await fetchBehaviors({});
+        filteredBehaviors = [...behaviors];
 
-        // 更新统计信息
         updateStatistics();
-
-        // 渲染表格
         renderTable();
-
-        // 更新分页
         updatePagination();
+        hideSearchResultsInfo();
 
     } catch (error) {
         console.error('加载数据失败:', error);
@@ -57,33 +54,164 @@ function hideLoading() {
     // 加载状态会在renderTable中被替换
 }
 
+// 设置事件监听器
+function setupEventListeners() {
+    // 表单提交事件
+    const form = document.getElementById('behaviorForm');
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        await saveBehavior();
+    });
+
+    // 搜索框输入时自动查询（防抖）
+    document.getElementById('searchInput').addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            performSearch();
+        }, 300);
+    });
+
+    // 下拉菜单变化时自动查询
+    document.getElementById('typeFilter').addEventListener('change', function() {
+        performSearch();
+    });
+
+    document.getElementById('ownerFilter').addEventListener('change', function() {
+        performSearch();
+    });
+
+    // 模态框关闭事件
+    const modal = document.getElementById('behaviorModal');
+    window.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+
+    const confirmModal = document.getElementById('confirmModal');
+    window.addEventListener('click', function(e) {
+        if (e.target === confirmModal) {
+            closeConfirmModal();
+        }
+    });
+}
+
+// 执行搜索
+async function performSearch() {
+    try {
+        const keyword = document.getElementById('searchInput').value.trim();
+        const type = document.getElementById('typeFilter').value;
+        const owner = document.getElementById('ownerFilter').value;
+
+        // 保存当前查询参数
+        currentSearchParams = { keyword, type, owner };
+
+        // 调用接口进行查询
+        await executeSearch(keyword, type, owner);
+    } catch (error) {
+        console.error('搜索失败:', error);
+    }
+}
+
+// 执行搜索查询
+async function executeSearch(keyword, type, owner) {
+    try {
+        showLoading();
+
+        // 调用接口获取数据
+        behaviors = await fetchBehaviors({ keyword, type, owner });
+        filteredBehaviors = [...behaviors];
+
+        // 显示搜索结果信息
+        showSearchResultsInfo(filteredBehaviors.length);
+
+        // 更新统计信息
+        updateStatistics();
+
+        // 渲染表格
+        renderTable();
+
+        // 重置分页
+        currentPage = 1;
+        updatePagination();
+
+    } catch (error) {
+        console.error('执行搜索失败:', error);
+    } finally {
+        hideLoading();
+    }
+}
+
+// 显示搜索结果信息
+function showSearchResultsInfo(count) {
+    const resultsInfo = document.getElementById('searchResultsInfo');
+    const resultsCount = document.getElementById('resultsCount');
+
+    if (count > 0) {
+        resultsCount.textContent = count;
+        resultsInfo.style.display = 'block';
+    } else {
+        resultsInfo.style.display = 'none';
+    }
+}
+
+// 隐藏搜索结果信息
+function hideSearchResultsInfo() {
+    document.getElementById('searchResultsInfo').style.display = 'none';
+}
+
+// 清除搜索框
+function clearSearch() {
+    document.getElementById('searchInput').value = '';
+    performSearch();
+}
+
+// 清除所有筛选条件
+function clearAllFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('typeFilter').value = '';
+    document.getElementById('ownerFilter').value = '';
+
+    currentSearchParams = {};
+    hideSearchResultsInfo();
+    loadBehaviors();
+}
+
 // 更新统计信息
 function updateStatistics() {
+    if (filteredBehaviors.length === 0) {
+        document.getElementById('totalRewards').textContent = '0';
+        document.getElementById('totalDeductions').textContent = '0';
+        document.getElementById('totalOwners').textContent = '0';
+        document.getElementById('totalFlowers').textContent = '0';
+        return;
+    }
+
     // 统计奖励项目
-    const rewardCount = allBehaviors.filter(item =>
+    const rewardCount = filteredBehaviors.filter(item =>
         item.type === 0 || item.type === 2
     ).length;
     document.getElementById('totalRewards').textContent = rewardCount;
 
     // 统计扣除项目
-    const deductionCount = allBehaviors.filter(item =>
+    const deductionCount = filteredBehaviors.filter(item =>
         item.type === 1 || item.type === 3
     ).length;
     document.getElementById('totalDeductions').textContent = deductionCount;
 
     // 统计执行人（去重）
-    const owners = [...new Set(allBehaviors.map(item => item.owner))];
+    const owners = [...new Set(filteredBehaviors.map(item => item.owner))];
     document.getElementById('totalOwners').textContent = owners.length;
 
     // 统计总红花数（奖励为正，扣除为负）
-    const totalFlowers = allBehaviors.reduce((sum, item) => {
+    const totalFlowers = filteredBehaviors.reduce((sum, item) => {
         const count = parseInt(item.redFlowerCount) || 0;
         return item.type === 1 || item.type === 3 ? sum - count : sum + count;
     }, 0);
     document.getElementById('totalFlowers').textContent = totalFlowers;
 }
 
-// 渲染表格（支持高亮）
+// 渲染表格
 function renderTable() {
     const tableBody = document.getElementById('tableBody');
 
@@ -91,11 +219,8 @@ function renderTable() {
         tableBody.innerHTML = `
             <tr>
                 <td colspan="7" style="text-align: center; padding: 40px; color: #999;">
-                    <i class="fas fa-search fa-3x"></i>
-                    <p style="margin-top: 10px;">没有找到符合条件的记录</p>
-                    <button class="btn btn-sm btn-primary" onclick="resetSearch()" style="margin-top: 10px;">
-                        重置查询条件
-                    </button>
+                    <i class="fas fa-inbox fa-3x"></i>
+                    <p style="margin-top: 10px;">暂无数据</p>
                 </td>
             </tr>
         `;
@@ -131,7 +256,7 @@ function renderTable() {
                 <td style="max-width: 300px; word-wrap: break-word;">${roleText}</td>
                 <td>
                     <span style="color: ${item.type === 1 || item.type === 3 ? '#F44336' : '#4CAF50'};">
-                        ${item.type === 1 || item.type === 3 ? '-' : '+'}${item.redFlowerCount}
+                        ${item.type === 1 || item.type === 3 ? '+' : '-'}${item.redFlowerCount}
                     </span>
                 </td>
                 <td><span class="status-badge ${typeInfo.className}">${typeInfo.name}</span></td>
@@ -154,20 +279,6 @@ function renderTable() {
     tableBody.innerHTML = html;
 }
 
-// 重置查询
-function resetSearch() {
-    // 重置表单
-    document.getElementById('searchInput').value = '';
-    document.getElementById('typeFilter').value = '';
-    document.getElementById('ownerFilter').value = '';
-
-    // 重置查询参数
-    currentSearchParams = {};
-
-    // 重新加载所有数据
-    loadBehaviors();
-}
-
 // 高亮关键词
 function highlightKeyword(text, keyword) {
     if (!keyword || !text) return text;
@@ -180,20 +291,6 @@ function highlightKeyword(text, keyword) {
     }
 }
 
-// 更新实时查询的分页
-function updateRealTimePagination(data) {
-    const totalPages = data.totalPages || 1;
-    const totalItems = data.totalItems || 0;
-
-    const pageInfo = document.getElementById('pageInfo');
-    const prevButton = document.getElementById('prevPage');
-    const nextButton = document.getElementById('nextPage');
-
-    pageInfo.textContent = `第 ${currentPage} 页 / 共 ${totalPages} 页`;
-    prevButton.disabled = currentPage <= 1;
-    nextButton.disabled = currentPage >= totalPages;
-}
-
 // 更新分页
 function updatePagination() {
     const totalPages = Math.ceil(filteredBehaviors.length / itemsPerPage);
@@ -202,7 +299,6 @@ function updatePagination() {
     const nextButton = document.getElementById('nextPage');
 
     pageInfo.textContent = `第 ${currentPage} 页 / 共 ${totalPages} 页`;
-
     prevButton.disabled = currentPage <= 1;
     nextButton.disabled = currentPage >= totalPages;
 }
@@ -218,237 +314,6 @@ function changePage(direction) {
         updatePagination();
     }
 }
-
-// 导出当前筛选结果
-async function exportFilteredData() {
-    try {
-        // 获取当前筛选条件
-        const searchParams = {
-            keyword: document.getElementById('searchInput').value.trim() || null,
-            type: document.getElementById('typeFilter').value || null,
-            owner: document.getElementById('ownerFilter').value || null
-        };
-
-        showSuccess('正在生成Word文档，请稍候...');
-
-        // 如果有明确的类型筛选，使用类型导出
-        if (searchParams.type && !searchParams.keyword && !searchParams.owner) {
-            await exportByType(parseInt(searchParams.type));
-        } else {
-            // 否则导出全部数据（或者可以调用一个支持复杂条件的导出接口）
-            await exportAllToWord();
-        }
-
-    } catch (error) {
-        console.error('导出失败:', error);
-        showError('导出失败，请检查网络连接');
-    }
-}
-
-// 过滤表格数据
-function filterTable() {
-    const searchText = document.getElementById('searchInput').value.toLowerCase();
-    const typeFilter = document.getElementById('typeFilter').value;
-    const ownerFilter = document.getElementById('ownerFilter').value;
-
-    filteredBehaviors = allBehaviors.filter(item => {
-        // 搜索文本过滤
-        const matchesSearch = !searchText ||
-            item.role.toLowerCase().includes(searchText) ||
-            (item.extra && item.extra.toLowerCase().includes(searchText));
-
-        // 类型过滤
-        const matchesType = !typeFilter || item.type.toString() === typeFilter;
-
-        // 执行人过滤
-        const matchesOwner = !ownerFilter || item.owner.toString() === ownerFilter;
-
-        return matchesSearch && matchesType && matchesOwner;
-    });
-
-    currentPage = 1;
-    renderTable();
-    updatePagination();
-}
-
-// 设置事件监听器
-function setupEventListeners() {
-    // 表单提交事件
-    const form = document.getElementById('behaviorForm');
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        await saveBehavior();
-    });
-
-    // 下拉菜单变化时自动查询
-    document.getElementById('typeFilter').addEventListener('change', function() {
-        performRealTimeSearch();
-    });
-
-    document.getElementById('ownerFilter').addEventListener('change', function() {
-        performRealTimeSearch();
-    });
-
-    // 搜索框输入时自动查询（添加防抖）
-    let searchTimeout;
-    document.getElementById('searchInput').addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            performRealTimeSearch();
-        }, 300); // 300ms防抖
-    });
-
-    // 模态框关闭事件
-    const modal = document.getElementById('behaviorModal');
-    window.addEventListener('click', function(e) {
-        if (e.target === modal) {
-            closeModal();
-        }
-    });
-
-    const confirmModal = document.getElementById('confirmModal');
-    window.addEventListener('click', function(e) {
-        if (e.target === confirmModal) {
-            closeConfirmModal();
-        }
-    });
-}
-
-// 实时查询（下拉菜单变化时自动调用）
-async function performRealTimeSearch() {
-    try {
-        // 收集查询参数
-        const searchParams = {
-            keyword: document.getElementById('searchInput').value.trim() || null,
-            type: document.getElementById('typeFilter').value || null,
-            owner: document.getElementById('ownerFilter').value || null,
-            page: 0,
-            size: itemsPerPage,
-            sortBy: 'id',
-            direction: 'desc'
-        };
-
-        // 保存当前查询参数
-        currentSearchParams = searchParams;
-
-        // 执行查询
-        await executeRealTimeSearch(searchParams);
-
-        // 更新统计信息
-        updateFilteredStatistics();
-
-    } catch (error) {
-        console.error('实时查询失败:', error);
-    }
-}
-
-// 更新筛选后的统计信息
-function updateFilteredStatistics() {
-    // 如果过滤后的数据为空，显示0
-    if (filteredBehaviors.length === 0) {
-        document.getElementById('totalRewards').textContent = '0';
-        document.getElementById('totalDeductions').textContent = '0';
-        document.getElementById('totalOwners').textContent = '0';
-        document.getElementById('totalFlowers').textContent = '0';
-        return;
-    }
-
-    // 统计奖励项目
-    const rewardCount = filteredBehaviors.filter(item =>
-        item.type === 0 || item.type === 2
-    ).length;
-    document.getElementById('totalRewards').textContent = rewardCount;
-
-    // 统计扣除项目
-    const deductionCount = filteredBehaviors.filter(item =>
-        item.type === 1 || item.type === 3
-    ).length;
-    document.getElementById('totalDeductions').textContent = deductionCount;
-
-    // 统计执行人（去重）
-    const owners = [...new Set(filteredBehaviors.map(item => item.owner))];
-    document.getElementById('totalOwners').textContent = owners.length;
-
-    // 统计总红花数（奖励为正，扣除为负）
-    const totalFlowers = filteredBehaviors.reduce((sum, item) => {
-        const count = parseInt(item.redFlowerCount) || 0;
-        return item.type === 1 || item.type === 3 ? sum - count : sum + count;
-    }, 0);
-    document.getElementById('totalFlowers').textContent = totalFlowers;
-}
-
-// 执行实时查询
-async function executeRealTimeSearch(params) {
-    try {
-        // 构建查询参数
-        const queryParams = new URLSearchParams();
-
-        if (params.keyword) queryParams.append('keyword', params.keyword);
-        if (params.type) queryParams.append('type', params.type);
-        if (params.owner) queryParams.append('owner', params.owner);
-        queryParams.append('page', params.page);
-        queryParams.append('size', params.size);
-        queryParams.append('sortBy', params.sortBy);
-        queryParams.append('direction', params.direction);
-
-        // 显示加载状态
-        showLoading();
-
-        // 调用查询接口
-        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.SEARCH}?${queryParams.toString()}`);
-
-        if (!response.ok) {
-            throw new Error(`查询失败: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        // 更新数据
-        filteredBehaviors = data.behaviors || [];
-
-        // 获取查询统计信息
-        await loadSearchStats(params);
-
-        // 渲染表格
-        renderTable();
-
-        // 更新分页信息
-        updateRealTimePagination(data);
-
-    } catch (error) {
-        console.error('执行查询失败:', error);
-        throw error;
-    } finally {
-        hideLoading();
-    }
-}
-
-// 加载查询统计信息
-async function loadSearchStats(params) {
-    try {
-        const queryParams = new URLSearchParams();
-
-        if (params.keyword) queryParams.append('keyword', params.keyword);
-        if (params.type) queryParams.append('type', params.type);
-        if (params.owner) queryParams.append('owner', params.owner);
-
-        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.SEARCH_STATS}?${queryParams.toString()}`);
-
-        if (response.ok) {
-            const stats = await response.json();
-            displaySearchStats(stats);
-        }
-    } catch (error) {
-        console.error('加载统计信息失败:', error);
-    }
-}
-
-// 显示查询统计信息
-function displaySearchStats(stats) {
-    // 这里可以添加更详细的统计信息显示
-    // 例如：在搜索框下方显示"找到X条记录，总红花数：Y"
-}
-
 
 // 打开添加模态框
 function openAddModal() {
@@ -513,7 +378,13 @@ async function saveBehavior() {
         }
 
         closeModal();
-        await loadBehaviors(); // 重新加载数据
+
+        // 重新加载数据（保持当前筛选条件）
+        await executeSearch(
+            currentSearchParams.keyword,
+            currentSearchParams.type,
+            currentSearchParams.owner
+        );
 
     } catch (error) {
         console.error('保存失败:', error);
@@ -542,7 +413,13 @@ async function confirmDelete() {
         await deleteBehavior(itemToDelete);
         showSuccess('规则删除成功');
         closeConfirmModal();
-        await loadBehaviors(); // 重新加载数据
+
+        // 重新加载数据（保持当前筛选条件）
+        await executeSearch(
+            currentSearchParams.keyword,
+            currentSearchParams.type,
+            currentSearchParams.owner
+        );
 
     } catch (error) {
         console.error('删除失败:', error);
@@ -563,50 +440,4 @@ async function exportToWord() {
     } catch (error) {
         console.error('导出失败:', error);
     }
-}
-
-// 模拟数据（当后端API不可用时使用）
-function getMockData() {
-    return [
-        {
-            id: 1,
-            role: "独立穿衣服、鞋子、袜子等，独立脱衣服、鞋子、袜子并将其整理整洁",
-            redFlowerCount: 1,
-            type: 0,
-            owner: 0,
-            extra: null
-        },
-        {
-            id: 2,
-            role: "独立吃饭，营养均衡并且不挑食，吃完饭后保证桌面及地面的干净",
-            redFlowerCount: 1,
-            type: 0,
-            owner: 0,
-            extra: null
-        },
-        {
-            id: 3,
-            role: "辅导宸宸学作业",
-            redFlowerCount: 1,
-            type: 0,
-            owner: 1,
-            extra: null
-        },
-        {
-            id: 4,
-            role: "遇到好朋友或者长辈，对方打招呼，不予回应",
-            redFlowerCount: 3,
-            type: 3,
-            owner: 0,
-            extra: "情节严重扣除特殊奖励"
-        },
-        {
-            id: 5,
-            role: "自己学习并独立完成洗澡",
-            redFlowerCount: 3,
-            type: 2,
-            owner: 0,
-            extra: "特殊奖励"
-        }
-    ];
 }
