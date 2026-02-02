@@ -32,8 +32,10 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.math.BigInteger;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -333,12 +335,9 @@ public class WordService {
             }
 
             // 5. 保存文档
-            FileOutputStream out = new FileOutputStream("行为规范表.docx");
+            FileOutputStream out = new FileOutputStream("行为规范表" + new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + ".docx");
             document.write(out);
             out.close();
-
-            System.out.println("Word文档已生成：行为规范表.docx");
-
         } catch (Exception e) {
             log.error("word生成失败!", e);
         }

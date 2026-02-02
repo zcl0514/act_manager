@@ -161,11 +161,13 @@ async function exportBehaviorsToWord() {
         }
 
         // 获取Blob数据并下载
+        const now = new Date();
+        const date = now.toLocaleString().split(",")[0];
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = '行为规范表.docx';
+        a.download = '行为规范表' + date + '.docx';
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
