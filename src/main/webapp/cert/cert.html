@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>家庭荣誉奖状生成器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=Ma+Shan+Zheng&family=ZCOOL+QingKe+HuangYou&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4efe9 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(90deg, #a044ff, #6a3093);
+            border-radius: 15px;
+            color: white;
+            box-shadow: 0 10px 30px rgba(106, 48, 147, 0.2);
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        .control-panel {
+            flex: 1;
+            min-width: 350px;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+        }
+
+        .preview-panel {
+            flex: 2;
+            min-width: 500px;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .panel-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #6a3093;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: 'Noto Serif SC', serif;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #6a3093;
+            box-shadow: 0 0 0 3px rgba(106, 48, 147, 0.1);
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .color-option.active {
+            border-color: #333;
+            transform: scale(1.1);
+        }
+
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .template-item {
+            border: 3px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .template-item:hover {
+            border-color: #6a3093;
+            transform: translateY(-5px);
+        }
+
+        .template-item.active {
+            border-color: #6a3093;
+            background-color: rgba(106, 48, 147, 0.05);
+        }
+
+        .template-preview {
+            height: 100px;
+            background-size: cover;
+            background-position: center;
+            border-radius: 5px;
+            margin-bottom: 8px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 14px 25px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Noto Serif SC', serif;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, #6a3093, #a044ff);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(90deg, #5a2073, #9034df);
+            transform: translateY(-3px);
+            box-shadow: 0 7px 15px rgba(106, 48, 147, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+            transform: translateY(-3px);
+            box-shadow: 0 7px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .certificate-container {
+            width: 100%;
+            max-width: 800px;
+            aspect-ratio: 1.414 / 1; /* A4比例 */
+            position: relative;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            overflow: hidden;
+            background: white;
+        }
+
+        .certificate {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .certificate-border {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .certificate-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .certificate-title {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+            letter-spacing: 5px;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+
+        .certificate-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 40px;
+            color: #666;
+        }
+
+        .certificate-recipient {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #b8860b;
+            font-family: 'ZCOOL QingKe HuangYou', cursive;
+        }
+
+        .certificate-content-text {
+            font-size: 1.4rem;
+            line-height: 1.8;
+            max-width: 600px;
+            margin-bottom: 40px;
+            color: #444;
+        }
+
+        .certificate-issuer {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            align-self: flex-end;
+            margin-right: 60px;
+        }
+
+        .certificate-date {
+            font-size: 1.2rem;
+            color: #666;
+            align-self: flex-end;
+            margin-right: 60px;
+        }
+
+        .certificate-seal {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            bottom: 40px;
+            right: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3;
+        }
+
+        .seal-text {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .template-1 .certificate {
+            background: linear-gradient(135deg, #fffaf0, #fff8dc);
+        }
+
+        .template-1 .certificate-border {
+            border: 15px solid #d4af37;
+            border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M0,0 L100,0 L100,100 L0,100 Z' fill='none' stroke='%23d4af37' stroke-width='2' stroke-dasharray='10,5'/%3E%3C/svg%3E") 30 round;
+        }
+
+        .template-1 .certificate-title {
+            color: #8b4513;
+        }
+
+        .template-1 .certificate-seal {
+            background: radial-gradient(circle, #8b0000, #b22222);
+            border: 5px solid #8b4513;
+        }
+
+        .template-2 .certificate {
+            background: linear-gradient(135deg, #f8f8ff, #f0f8ff);
+        }
+
+        .template-2 .certificate-border {
+            border: 10px solid transparent;
+            border-image: linear-gradient(45deg, #1e90ff, #00bfff) 1;
+        }
+
+        .template-2 .certificate-title {
+            color: #1e3a8a;
+            background: linear-gradient(90deg, #1e3a8a, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .template-2 .certificate-seal {
+            background: radial-gradient(circle, #3b82f6, #1e3a8a);
+            border: 5px solid #1e90ff;
+        }
+
+        .template-3 .certificate {
+            background: linear-gradient(135deg, #fff0f5, #fffaf0);
+        }
+
+        .template-3 .certificate-border {
+            border: 12px solid #ff69b4;
+            border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M20,20 L80,20 L80,80 L20,80 Z' fill='none' stroke='%23ff69b4' stroke-width='5'/%3E%3Ccircle cx='50' cy='50' r='10' fill='%23ff69b4'/%3E%3C/svg%3E") 30 round;
+        }
+
+        .template-3 .certificate-title {
+            color: #c71585;
+        }
+
+        .template-3 .certificate-seal {
+            background: radial-gradient(circle, #ff69b4, #c71585);
+            border: 5px solid #ff1493;
+        }
+
+        .template-4 .certificate {
+            background: linear-gradient(135deg, #f0fff0, #e6ffe6);
+        }
+
+        .template-4 .certificate-border {
+            border: 8px double #228b22;
+        }
+
+        .template-4 .certificate-title {
+            color: #006400;
+        }
+
+        .template-4 .certificate-seal {
+            background: radial-gradient(circle, #228b22, #006400);
+            border: 5px solid #32cd32;
+        }
+
+        .template-5 .certificate {
+            background: linear-gradient(135deg, #fffaf0, #fdf5e6);
+        }
+
+        .template-5 .certificate-border {
+            border: 20px solid transparent;
+            border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M10,10 L90,10 L90,90 L10,90 Z' fill='none' stroke='%23daa520' stroke-width='2'/%3E%3C/svg%3E") 30 stretch;
+        }
+
+        .template-5 .certificate-title {
+            color: #8b4513;
+            text-shadow: 2px 2px 4px rgba(139, 69, 19, 0.3);
+        }
+
+        .template-5 .certificate-seal {
+            background: radial-gradient(circle, #daa520, #b8860b);
+            border: 5px solid #8b4513;
+        }
+
+        .decorative-corner {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            z-index: 1;
+        }
+
+        .corner-tl {
+            top: 10px;
+            left: 10px;
+            border-top: 4px solid;
+            border-left: 4px solid;
+        }
+
+        .corner-tr {
+            top: 10px;
+            right: 10px;
+            border-top: 4px solid;
+            border-right: 4px solid;
+        }
+
+        .corner-bl {
+            bottom: 10px;
+            left: 10px;
+            border-bottom: 4px solid;
+            border-left: 4px solid;
+        }
+
+        .corner-br {
+            bottom: 10px;
+            right: 10px;
+            border-bottom: 4px solid;
+            border-right: 4px solid;
+        }
+
+        @media (max-width: 1100px) {
+            .main-content {
+                flex-direction: column;
+            }
+
+            .control-panel, .preview-panel {
+                min-width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .certificate-title {
+                font-size: 2.5rem;
+            }
+
+            .certificate-recipient {
+                font-size: 2rem;
+            }
+
+            .certificate-content-text {
+                font-size: 1.1rem;
+            }
+
+            .template-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.3s;
+        }
+
+        .spinner {
+            width: 70px;
+            height: 70px;
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #6a3093;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1><i class="fas fa-award"></i> 家庭荣誉奖状生成器</h1>
+        <p class="subtitle">为您和您的家人定制专属荣誉证书，记录美好时刻，表彰杰出贡献</p>
+    </header>
+
+    <div class="main-content">
+        <div class="control-panel">
+            <h2 class="panel-title"><i class="fas fa-edit"></i> 奖状内容设置</h2>
+
+            <div class="form-group">
+                <label for="recipient"><i class="fas fa-user"></i> 获奖者姓名</label>
+                <input type="text" id="recipient" placeholder="请输入获奖者姓名" value="张明">
+            </div>
+
+            <div class="form-group">
+                <label for="title"><i class="fas fa-trophy"></i> 奖状标题</label>
+                <input type="text" id="title" placeholder="请输入奖状标题" value="优秀家庭成员">
+            </div>
+
+            <div class="form-group">
+                <label for="content"><i class="fas fa-quote-left"></i> 奖状内容</label>
+                <textarea id="content" placeholder="请输入奖状内容">在2023年度家庭生活中，表现突出，积极承担家庭责任，关心家人，为家庭和谐做出了重要贡献。特发此证，以资鼓励。</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="issuer"><i class="fas fa-building"></i> 颁发单位</label>
+                <input type="text" id="issuer" placeholder="请输入颁发单位" value="家庭委员会">
+            </div>
+
+            <div class="form-group">
+                <label for="date"><i class="fas fa-calendar-alt"></i> 颁发日期</label>
+                <input type="date" id="date" value="2023-12-20">
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-palette"></i> 选择模板</label>
+                <div class="template-grid">
+                    <div class="template-item active" data-template="1">
+                        <div class="template-preview" style="background: linear-gradient(135deg, #fffaf0, #fff8dc); border: 2px solid #d4af37;"></div>
+                        <div>经典金色</div>
+                    </div>
+                    <div class="template-item" data-template="2">
+                        <div class="template-preview" style="background: linear-gradient(135deg, #f8f8ff, #f0f8ff); border: 2px solid #1e90ff;"></div>
+                        <div>典雅蓝色</div>
+                    </div>
+                    <div class="template-item" data-template="3">
+                        <div class="template-preview" style="background: linear-gradient(135deg, #fff0f5, #fffaf0); border: 2px solid #ff69b4;"></div>
+                        <div>温馨粉色</div>
+                    </div>
+                    <div class="template-item" data-template="4">
+                        <div class="template-preview" style="background: linear-gradient(135deg, #f0fff0, #e6ffe6); border: 2px solid #228b22;"></div>
+                        <div>清新绿色</div>
+                    </div>
+                    <div class="template-item" data-template="5">
+                        <div class="template-preview" style="background: linear-gradient(135deg, #fffaf0, #fdf5e6); border: 2px solid #daa520;"></div>
+                        <div>传统古典</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-fill-drip"></i> 文字颜色</label>
+                <div class="color-picker">
+                    <div class="color-option active" style="background-color: #8b4513;" data-color="#8b4513"></div>
+                    <div class="color-option" style="background-color: #1e3a8a;" data-color="#1e3a8a"></div>
+                    <div class="color-option" style="background-color: #c71585;" data-color="#c71585"></div>
+                    <div class="color-option" style="background-color: #006400;" data-color="#006400"></div>
+                    <div class="color-option" style="background-color: #8b0000;" data-color="#8b0000"></div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" id="generateBtn">
+                    <i class="fas fa-sync-alt"></i> 更新预览
+                </button>
+                <button class="btn btn-primary" id="downloadBtn">
+                    <i class="fas fa-download"></i> 下载奖状
+                </button>
+                <button class="btn btn-secondary" id="randomBtn">
+                    <i class="fas fa-random"></i> 随机样式
+                </button>
+            </div>
+        </div>
+
+        <div class="preview-panel">
+            <h2 class="panel-title"><i class="fas fa-eye"></i> 奖状预览</h2>
+            <div class="certificate-container">
+                <div class="certificate template-1" id="certificate">
+                    <div class="certificate-border"></div>
+                    <div class="decorative-corner corner-tl" style="border-color: #d4af37;"></div>
+                    <div class="decorative-corner corner-tr" style="border-color: #d4af37;"></div>
+                    <div class="decorative-corner corner-bl" style="border-color: #d4af37;"></div>
+                    <div class="decorative-corner corner-br" style="border-color: #d4af37;"></div>
+
+                    <div class="certificate-content">
+                        <div class="certificate-title">荣誉证书</div>
+                        <div class="certificate-subtitle">CERTIFICATE OF HONOR</div>
+                        <div class="certificate-recipient">张明</div>
+                        <div class="certificate-content-text">
+                            在2023年度家庭生活中，表现突出，积极承担家庭责任，关心家人，为家庭和谐做出了重要贡献。特发此证，以资鼓励。
+                        </div>
+                        <div class="certificate-issuer">家庭委员会</div>
+                        <div class="certificate-date">2023年12月20日</div>
+                    </div>
+
+                    <div class="certificate-seal">
+                        <div class="seal-text">
+                            家庭<br>荣誉
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-secondary" id="printBtn">
+                    <i class="fas fa-print"></i> 打印奖状
+                </button>
+                <button class="btn btn-secondary" id="shareBtn">
+                    <i class="fas fa-share-alt"></i> 分享奖状
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading hidden" id="loading">
+        <div class="spinner"></div>
+        <p>正在生成奖状，请稍候...</p>
+    </div>
+</div>
+
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<script>
+    // DOM元素
+    const recipientInput = document.getElementById('recipient');
+    const titleInput = document.getElementById('title');
+    const contentInput = document.getElementById('content');
+    const issuerInput = document.getElementById('issuer');
+    const dateInput = document.getElementById('date');
+    const templateItems = document.querySelectorAll('.template-item');
+    const colorOptions = document.querySelectorAll('.color-option');
+    const certificate = document.getElementById('certificate');
+    const generateBtn = document.getElementById('generateBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const randomBtn = document.getElementById('randomBtn');
+    const printBtn = document.getElementById('printBtn');
+    const shareBtn = document.getElementById('shareBtn');
+    const loading = document.getElementById('loading');
+
+    // 当前选择的模板和颜色
+    let currentTemplate = '1';
+    let currentColor = '#8b4513';
+
+    // 模板数据
+    const templates = {
+        '1': {
+            name: '经典金色',
+            titleColor: '#8b4513',
+            borderColor: '#d4af37',
+            sealColor: 'radial-gradient(circle, #8b0000, #b22222)',
+            sealBorderColor: '#8b4513'
+        },
+        '2': {
+            name: '典雅蓝色',
+            titleColor: '#1e3a8a',
+            borderColor: '#1e90ff',
+            sealColor: 'radial-gradient(circle, #3b82f6, #1e3a8a)',
+            sealBorderColor: '#1e90ff'
+        },
+        '3': {
+            name: '温馨粉色',
+            titleColor: '#c71585',
+            borderColor: '#ff69b4',
+            sealColor: 'radial-gradient(circle, #ff69b4, #c71585)',
+            sealBorderColor: '#ff1493'
+        },
+        '4': {
+            name: '清新绿色',
+            titleColor: '#006400',
+            borderColor: '#228b22',
+            sealColor: 'radial-gradient(circle, #228b22, #006400)',
+            sealBorderColor: '#32cd32'
+        },
+        '5': {
+            name: '传统古典',
+            titleColor: '#8b4513',
+            borderColor: '#daa520',
+            sealColor: 'radial-gradient(circle, #daa520, #b8860b)',
+            sealBorderColor: '#8b4513'
+        }
+    };
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', function() {
+        updatePreview();
+
+        // 模板选择事件
+        templateItems.forEach(item => {
+            item.addEventListener('click', function() {
+                templateItems.forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                currentTemplate = this.dataset.template;
+                updatePreview();
+            });
+        });
+
+        // 颜色选择事件
+        colorOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                colorOptions.forEach(o => o.classList.remove('active'));
+                this.classList.add('active');
+                currentColor = this.dataset.color;
+                updatePreview();
+            });
+        });
+
+        // 生成预览按钮
+        generateBtn.addEventListener('click', updatePreview);
+
+        // 随机样式按钮
+        randomBtn.addEventListener('click', generateRandomStyle);
+
+        // 下载按钮
+        downloadBtn.addEventListener('click', downloadCertificate);
+
+        // 打印按钮
+        printBtn.addEventListener('click', printCertificate);
+
+        // 分享按钮
+        shareBtn.addEventListener('click', shareCertificate);
+
+        // 输入框实时更新预览
+        [recipientInput, titleInput, contentInput, issuerInput, dateInput].forEach(input => {
+            input.addEventListener('input', updatePreview);
+        });
+
+        // 设置默认日期为今天
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.value = today;
+    });
+
+    // 更新预览
+    function updatePreview() {
+        // 获取输入值
+        const recipient = recipientInput.value || '获奖者姓名';
+        const title = titleInput.value || '奖状标题';
+        const content = contentInput.value || '奖状内容';
+        const issuer = issuerInput.value || '颁发单位';
+        const date = formatDate(dateInput.value) || '颁发日期';
+
+        // 获取当前模板样式
+        const template = templates[currentTemplate];
+
+        // 更新证书内容
+        document.querySelector('.certificate-title').textContent = title;
+        document.querySelector('.certificate-recipient').textContent = recipient;
+        document.querySelector('.certificate-content-text').textContent = content;
+        document.querySelector('.certificate-issuer').textContent = issuer;
+        document.querySelector('.certificate-date').textContent = date;
+
+        // 更新证书样式
+        certificate.className = 'certificate template-' + currentTemplate;
+        document.querySelector('.certificate-title').style.color = currentColor;
+        document.querySelector('.certificate-recipient').style.color = currentColor;
+
+        // 更新边框和角装饰颜色
+        const corners = document.querySelectorAll('.decorative-corner');
+        corners.forEach(corner => {
+            corner.style.borderColor = template.borderColor;
+        });
+
+        // 更新印章样式
+        const seal = document.querySelector('.certificate-seal');
+        seal.style.background = template.sealColor;
+        seal.style.borderColor = template.sealBorderColor;
+    }
+
+    // 格式化日期
+    function formatDate(dateString) {
+        if (!dateString) return '';
+
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+
+        return `${year}年${month}月${day}日`;
+    }
+
+    // 生成随机样式
+    function generateRandomStyle() {
+        // 随机选择模板
+        const randomTemplate = Math.floor(Math.random() * 5) + 1;
+        templateItems.forEach(item => item.classList.remove('active'));
+        document.querySelector(`.template-item[data-template="${randomTemplate}"]`).classList.add('active');
+        currentTemplate = randomTemplate.toString();
+
+        // 随机选择颜色
+        const colors = ['#8b4513', '#1e3a8a', '#c71585', '#006400', '#8b0000'];
+        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+        colorOptions.forEach(option => option.classList.remove('active'));
+        document.querySelector(`.color-option[data-color="${randomColor}"]`).classList.add('active');
+        currentColor = randomColor;
+
+        // 更新预览
+        updatePreview();
+
+        // 显示提示
+        showNotification('已应用随机样式！', 'success');
+    }
+
+    // 下载证书
+    function downloadCertificate() {
+        showLoading();
+
+        // 使用html2canvas将证书转换为图片
+        html2canvas(certificate, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: null
+        }).then(canvas => {
+            // 创建下载链接
+            const link = document.createElement('a');
+            link.download = `家庭奖状_${recipientInput.value || '未知'}_${new Date().toISOString().split('T')[0]}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+
+            hideLoading();
+            showNotification('奖状下载成功！', 'success');
+        }).catch(error => {
+            console.error('生成图片时出错:', error);
+            hideLoading();
+            showNotification('生成图片时出错，请重试', 'error');
+        });
+    }
+
+    // 打印证书
+    function printCertificate() {
+        showLoading();
+
+        // 创建一个用于打印的临时元素
+        const printContent = certificate.cloneNode(true);
+        printContent.style.width = '210mm';
+        printContent.style.height = '297mm';
+        printContent.style.margin = '0';
+        printContent.style.boxShadow = 'none';
+
+        const printWindow = window.open('', '_blank');
+        printWindow.document.open();
+        printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>打印奖状</title>
+                    <style>
+                        body {
+                            margin: 0;
+                            padding: 0;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            min-height: 100vh;
+                        }
+                        @media print {
+                            @page { margin: 0; }
+                            body { margin: 0; }
+                        }
+                    </style>
+                </head>
+                <body>
+                </body>
+                </html>
+            `);
+        printWindow.document.body.appendChild(printContent);
+        printWindow.document.close();
+
+        // 等待内容加载完成后打印
+        printWindow.onload = function() {
+            printWindow.focus();
+            printWindow.print();
+            printWindow.close();
+            hideLoading();
+            showNotification('已发送到打印机', 'success');
+        };
+    }
+
+    // 分享证书
+    function shareCertificate() {
+        // 检查是否支持Web Share API
+        if (navigator.share) {
+            navigator.share({
+                title: `${recipientInput.value || '未知'}的家庭奖状`,
+                text: `我为${recipientInput.value || '家人'}创建了一张家庭奖状！`,
+                url: window.location.href
+            })
+                .then(() => showNotification('分享成功！', 'success'))
+                .catch(error => console.log('分享取消或出错:', error));
+        } else {
+            // 如果不支持Web Share API，则复制链接到剪贴板
+            navigator.clipboard.writeText(window.location.href)
+                .then(() => showNotification('链接已复制到剪贴板！', 'success'))
+                .catch(err => {
+                    console.error('复制失败:', err);
+                    showNotification('复制失败，请手动复制链接', 'error');
+                });
+        }
+    }
+
+    // 显示加载动画
+    function showLoading() {
+        loading.classList.remove('hidden');
+    }
+
+    // 隐藏加载动画
+    function hideLoading() {
+        loading.classList.add('hidden');
+    }
+
+    // 显示通知
+    function showNotification(message, type) {
+        // 创建通知元素
+        const notification = document.createElement('div');
+        notification.textContent = message;
+        notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 600;
+                z-index: 1000;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                animation: slideIn 0.3s ease-out;
+            `;
+
+        // 设置背景色
+        if (type === 'success') {
+            notification.style.background = 'linear-gradient(90deg, #4CAF50, #2E7D32)';
+        } else {
+            notification.style.background = 'linear-gradient(90deg, #f44336, #c62828)';
+        }
+
+        document.body.appendChild(notification);
+
+        // 3秒后移除通知
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 300);
+        }, 3000);
+
+        // 添加CSS动画
+        if (!document.querySelector('#notification-styles')) {
+            const style = document.createElement('style');
+            style.id = 'notification-styles';
+            style.textContent = `
+                    @keyframes slideIn {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                    @keyframes slideOut {
+                        from { transform: translateX(0); opacity: 1; }
+                        to { transform: translateX(100%); opacity: 0; }
+                    }
+                `;
+            document.head.appendChild(style);
+        }
+    }
+</script>
+</body>
+</html>
