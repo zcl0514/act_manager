@@ -144,7 +144,7 @@ public class WordService {
 
                 setTableHeaderCell(headerRow.getCell(0), "");
                 setTableHeaderCell(headerRow.getCell(1), "规则");
-                setTableHeaderCell(headerRow.getCell(2), "小红花");
+                setTableHeaderCell(headerRow.getCell(2), "钱");
                 setTableHeaderCell(headerRow.getCell(3), "额外");
                 headerRow.setHeight(400);
 
@@ -171,7 +171,7 @@ public class WordService {
 
                         setTableCell(dataRow.getCell(1), item.getRole());
                         setTableCell(dataRow.getCell(2),
-                                item.getRedFlowerCount().toString());
+                                item.getRedFlowerCount()+"元");
 
                         if (StringUtils.isNotBlank(item.getExtra())) {
                             setTableCell(dataRow.getCell(3),
@@ -185,7 +185,7 @@ public class WordService {
 
                     // 合并owner列的单元格
                     if (endRow > startRow) {
-                        mergeCellsVertically(table, 0, startRow, endRow);
+                        mergeCellsVertically(table, startRow, endRow);
                     }
                 }
 
@@ -320,7 +320,7 @@ public class WordService {
 
                     // 合并owner列的单元格
                     if (endRow > startRow) {
-                        mergeCellsVertically(table, 0, startRow, endRow);
+                        mergeCellsVertically(table, startRow, endRow);
                     }
                 }
 
@@ -417,9 +417,9 @@ public class WordService {
         paragraph.setAlignment(ParagraphAlignment.LEFT);
     }
 
-    private static void mergeCellsVertically(XWPFTable table, int col, int startRow, int endRow) {
+    private static void mergeCellsVertically(XWPFTable table, int startRow, int endRow) {
         for (int row = startRow; row <= endRow; row++) {
-            XWPFTableCell cell = table.getRow(row).getCell(col);
+            XWPFTableCell cell = table.getRow(row).getCell(0);
 
             if (row == startRow) {
                 // 第一个单元格设置合并开始
